@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@master/dist/aframe-master.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar-nft.js"></script>
+
+    <style>
+      .arjs-loader {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: rgba(250, 249, 249, 0.8);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .arjs-loader div {
+        text-align: center;
+        font-size: 1.25em;
+        color: black;
+      }
+    </style>
+    <title>PBO</title>
+  </head>
+  <body style="margin: 0px; overflow: hidden">
+    <div id="loadingOverlay" class="arjs-loader">
+      <div>Loading, please wait...</div>
+    </div>
+
+    <div
+      id="startOverlay"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        font-size: 24px;
+        text-align: center;
+        cursor: pointer;
+      "
+    >
+      Tap to Start Experience
+    </div>
+
+    <a-scene
+      vr-mode-ui="enabled: false"
+      embedded
+      renderer="logarithmicDepthBuffer: true;"
+      arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+      touch-action="none"
+    >
+      <a-entity light="type: ambient; intensity: 1"></a-entity>
+      <a-assets>
+        <audio id="mySound" src="./Assets/african.mp3" preload="auto"></audio>
+
+        <img id="page2" src="./Assets/pages/creators.jpg" />
+        <img id="page3" src="./Assets/pages/content.jpg" />
+        <img id="page4" src="./Assets/pages/AWRA1.jpg" />
+        <img id="page5" src="./Assets/pages/AWRA2.jpg" />
+        <img id="page6" src="./Assets/pages/AWRA3.jpg" />
+        <img id="page7" src="./Assets/pages/AWRA4.jpg" />
+        <img id="page8" src="./Assets/pages/AWRA5.jpg" />
+        <img id="page9" src="./Assets/pages/AWRA6.jpg" />
+      </a-assets>
+
+      <a-nft
+        id="nftMarker"
+        type="nft"
+        url="./Assets/PMB Marker"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance=".01"
+        smoothThreshold="5"
+      >
+        <a-plane
+          src="#mySound"
+          width="1"
+          height="1"
+          position="0 0 0"
+          rotation="-90 0 0"
+        >
+        </a-plane>
+        <a-entity
+          id="magazinePage"
+          geometry="primitive: plane; width: 200; height: 240"
+          material="src: #page2"
+          position="120 -30 -240"
+          rotation="-90 0 0"
+        >
+        </a-entity>
+      </a-nft>
+
+      <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+      const audio = document.querySelector("#mySound");
+      const marker = document.querySelector("#nftMarker");
+      const startOverlay = document.getElementById("startOverlay");
+      const loadingOverlay = document.getElementById("loadingOverlay");
+
+      let userTapped = false;
+      let arReady = false;
+      let audioPrimed = false;
+      let markerEventsAttached = false;
+
+      function tryInitARAudio() {
+        if (userTapped && arReady && !markerEventsAttached) {
+          startOverlay.style.display = "none";
+
+          marker.addEventListener("markerFound", () => {
+            console.log("Marker found → playing audio");
+            if (audioPrimed) {
+              audio.play();
+            }
+          });
+
+          marker.addEventListener("markerLost", () => {
+            console.log("Marker lost → stopping audio");
+            audio.pause();
+            audio.currentTime = 0;
+            audioGif.style.display = "none";
+          });
+
+          markerEventsAttached = true; // Prevent double binding
+        }
+      }
+
+      window.addEventListener("arjs-nft-loaded", () => {
+        arReady = true;
+        console.log("AR.js is ready");
+        loadingOverlay.style.display = "none";
+        startOverlay.style.display = "flex";
+        tryInitARAudio();
+      });
+
+      startOverlay.addEventListener("click", () => {
+        userTapped = true;
+
+        // Silent unlock without actually playing
+        const silentUnlock = audio.play();
+        if (silentUnlock !== undefined) {
+          silentUnlock
+            .then(() => {
+              audio.pause();
+              audio.currentTime = 0;
+              audioPrimed = true;
+              console.log("Audio primed silently");
+              tryInitARAudio();
+            })
+            .catch((e) => {
+              console.warn("Error priming audio:", e);
+            });
+        }
+      });
+
+      // --- Swipe logic for magazine pages ---
+      window.addEventListener("DOMContentLoaded", () => {
+        const pages = [
+          "#page2",
+          "#page3",
+          "#page4",
+          "#page5",
+          "#page6",
+          "#page7",
+          "#page8",
+          "#page9",
+        ];
+        let currentPage = 0;
+        const magazinePlane = document.getElementById("magazinePage");
+        magazinePlane.setAttribute("visible", false);
+
+        function showPage(index) {
+          const pageId = pages[index];
+          magazinePlane.setAttribute("material", "src", pages[index]);
+          magazinePlane.setAttribute("visible", true);
+        }
+
+        let startX = null;
+
+        document.addEventListener("touchstart", (e) => {
+          startX = e.touches[0].clientX;
+          console.log("Touch start:", startX);
+        });
+        document.addEventListener("touchend", (e) => {
+          if (startX === null) return;
+          let endX = e.changedTouches[0].clientX;
+          let diff = startX - endX;
+
+          if (Math.abs(diff) > 30) {
+            if (!magazinePlane.getAttribute("visible")) {
+              // First swipe → just show page 0
+              showPage(0);
+            } else {
+              if (diff > 0 && currentPage < pages.length - 1) {
+                currentPage++;
+                showPage(currentPage);
+              } else if (diff < 0) {
+                if (currentPage > 0) {
+                  currentPage--;
+                  showPage(currentPage);
+                } else if (currentPage === 0) {
+                  // Hide page
+                  magazinePlane.setAttribute("visible", false);
+                  // Do NOT stop audio here
+                }
+              }
+            }
+          }
+
+          startX = null;
+          console.log("Touch end:", endX, "Diff:", diff);
+        });
+      });
+    </script>
+  </body>
+</html>
