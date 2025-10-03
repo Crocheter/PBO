@@ -66,16 +66,19 @@
     >
       <a-entity light="type: ambient; intensity: 1"></a-entity>
       <a-assets>
-        <audio id="mySound" src="./Assets/african.mp3" preload="auto"></audio>
+        <!-- Background Music -->
+        <audio
+          id="mySound"
+          src="./Assets/Spoken Word.mp3"
+          preload="auto"
+          loop
+        ></audio>
 
-        <img id="page2" src="./Assets/pages/creators.jpg" />
-        <img id="page3" src="./Assets/pages/content.jpg" />
-        <img id="page4" src="./Assets/pages/AWRA1.jpg" />
-        <img id="page5" src="./Assets/pages/AWRA2.jpg" />
-        <img id="page6" src="./Assets/pages/AWRA3.jpg" />
-        <img id="page7" src="./Assets/pages/AWRA4.jpg" />
-        <img id="page8" src="./Assets/pages/AWRA5.jpg" />
-        <img id="page9" src="./Assets/pages/AWRA6.jpg" />
+        <!-- Pages -->
+        <img id="page2" src="./Assets/HOSBO1.jpg" />
+        <img id="page3" src="./Assets/HOSBO2.jpg" />
+        <img id="page4" src="./Assets/HOSBO3.jpg" />
+        <img id="page5" src="./Assets/HOSBO4.jpg" />
       </a-assets>
 
       <a-nft
@@ -87,20 +90,14 @@
         smoothTolerance=".01"
         smoothThreshold="5"
       >
-        <a-plane
-          src="#mySound"
-          width="1"
-          height="1"
-          position="0 0 0"
-          rotation="-90 0 0"
-        >
-        </a-plane>
+        <!-- Page container -->
         <a-entity
           id="magazinePage"
-          geometry="primitive: plane; width: 200; height: 240"
+          geometry="primitive: plane; width: 160; height: 60"
           material="src: #page2"
           position="120 -30 -240"
           rotation="-90 0 0"
+          visible="false"
         >
         </a-entity>
       </a-nft>
@@ -113,28 +110,59 @@
       const marker = document.querySelector("#nftMarker");
       const startOverlay = document.getElementById("startOverlay");
       const loadingOverlay = document.getElementById("loadingOverlay");
+      const magazinePlane = document.getElementById("magazinePage");
 
       let userTapped = false;
       let arReady = false;
       let audioPrimed = false;
       let markerEventsAttached = false;
 
+      // Page slideshow setup
+      const pages = ["#page2", "#page3", "#page4", "#page5"];
+      let currentPage = 0;
+      let intervalId = null;
+
+      function showPage(index) {
+        magazinePlane.setAttribute("material", "src", pages[index]);
+        magazinePlane.setAttribute("visible", true);
+
+        // Fade in animation
+        magazinePlane.setAttribute("animation__fade", {
+          property: "material.opacity",
+          from: 0,
+          to: 1,
+          dur: 1000,
+        });
+      }
+
       function tryInitARAudio() {
         if (userTapped && arReady && !markerEventsAttached) {
           startOverlay.style.display = "none";
 
           marker.addEventListener("markerFound", () => {
-            console.log("Marker found → playing audio");
+            console.log("Marker found → playing audio + slideshow");
+
             if (audioPrimed) {
               audio.play();
             }
+
+            // Start slideshow
+            currentPage = 0;
+            showPage(currentPage);
+
+            intervalId = setInterval(() => {
+              currentPage = (currentPage + 1) % pages.length;
+              showPage(currentPage);
+            }, 5000); // 5s per page
           });
 
           marker.addEventListener("markerLost", () => {
-            console.log("Marker lost → stopping audio");
+            console.log("Marker lost → stopping audio + slideshow");
             audio.pause();
             audio.currentTime = 0;
-            audioGif.style.display = "none";
+
+            clearInterval(intervalId);
+            magazinePlane.setAttribute("visible", false);
           });
 
           markerEventsAttached = true; // Prevent double binding
@@ -167,65 +195,6 @@
               console.warn("Error priming audio:", e);
             });
         }
-      });
-
-      // --- Swipe logic for magazine pages ---
-      window.addEventListener("DOMContentLoaded", () => {
-        const pages = [
-          "#page2",
-          "#page3",
-          "#page4",
-          "#page5",
-          "#page6",
-          "#page7",
-          "#page8",
-          "#page9",
-        ];
-        let currentPage = 0;
-        const magazinePlane = document.getElementById("magazinePage");
-        magazinePlane.setAttribute("visible", false);
-
-        function showPage(index) {
-          const pageId = pages[index];
-          magazinePlane.setAttribute("material", "src", pages[index]);
-          magazinePlane.setAttribute("visible", true);
-        }
-
-        let startX = null;
-
-        document.addEventListener("touchstart", (e) => {
-          startX = e.touches[0].clientX;
-          console.log("Touch start:", startX);
-        });
-        document.addEventListener("touchend", (e) => {
-          if (startX === null) return;
-          let endX = e.changedTouches[0].clientX;
-          let diff = startX - endX;
-
-          if (Math.abs(diff) > 30) {
-            if (!magazinePlane.getAttribute("visible")) {
-              // First swipe → just show page 0
-              showPage(0);
-            } else {
-              if (diff > 0 && currentPage < pages.length - 1) {
-                currentPage++;
-                showPage(currentPage);
-              } else if (diff < 0) {
-                if (currentPage > 0) {
-                  currentPage--;
-                  showPage(currentPage);
-                } else if (currentPage === 0) {
-                  // Hide page
-                  magazinePlane.setAttribute("visible", false);
-                  // Do NOT stop audio here
-                }
-              }
-            }
-          }
-
-          startX = null;
-          console.log("Touch end:", endX, "Diff:", diff);
-        });
       });
     </script>
   </body>
