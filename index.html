@@ -69,7 +69,7 @@
         <!-- Background Music -->
         <audio
           id="mySound"
-          src="./Assets/Spoken Word.mp3"
+          src="./Assets/For PBO.MP3"
           preload="auto"
           loop
         ></audio>
@@ -79,6 +79,13 @@
         <img id="page3" src="./Assets/HOSBO2.jpg" />
         <img id="page4" src="./Assets/HOSBO3.jpg" />
         <img id="page5" src="./Assets/HOSBO4.jpg" />
+        <img id="page6" src="./Assets/HOSBO5.jpg" />
+        <img id="page7" src="./Assets/HOSBO6.jpg" />
+        <img id="page8" src="./Assets/HOSBO7.jpg" />
+        <img id="page9" src="./Assets/HOSBO8.jpg" />
+        <img id="page10" src="./Assets/HOSBO9.jpg" />
+        <img id="page11" src="./Assets/HOSBO10.jpg" />
+        <img id="page12" src="./Assets/HOSBO11.jpg" />
       </a-assets>
 
       <a-nft
@@ -93,7 +100,7 @@
         <!-- Page container -->
         <a-entity
           id="magazinePage"
-          geometry="primitive: plane; width: 160; height: 60"
+          geometry="primitive: plane; width: 280; height: 100"
           material="src: #page2"
           position="120 -30 -240"
           rotation="-90 0 0"
@@ -118,7 +125,19 @@
       let markerEventsAttached = false;
 
       // Page slideshow setup
-      const pages = ["#page2", "#page3", "#page4", "#page5"];
+      const pages = [
+        "#page2",
+        "#page3",
+        "#page4",
+        "#page5",
+        "#page6",
+        "#page7",
+        "#page8",
+        "#page9",
+        "#page10",
+        "#page11",
+        "#page12",
+      ];
       let currentPage = 0;
       let intervalId = null;
 
@@ -153,7 +172,7 @@
             intervalId = setInterval(() => {
               currentPage = (currentPage + 1) % pages.length;
               showPage(currentPage);
-            }, 5000); // 5s per page
+            }, 10000); // 5s per page
           });
 
           marker.addEventListener("markerLost", () => {
