@@ -30,7 +30,7 @@
     </style>
     <title>PBO</title>
   </head>
-  <body style="margin: 0px; overflow: hidden">
+  <body style="margin: 0; overflow: hidden">
     <div id="loadingOverlay" class="arjs-loader">
       <div>Loading, please wait...</div>
     </div>
@@ -65,27 +65,20 @@
       touch-action="none"
     >
       <a-entity light="type: ambient; intensity: 1"></a-entity>
-      <a-assets>
-        <!-- Background Music -->
-        <audio
-          id="mySound"
-          src="./Assets/For PBO.MP3"
-          preload="auto"
-          loop
-        ></audio>
 
-        <!-- Pages -->
-        <img id="page2" src="./Assets/HOSBO1.jpg" />
-        <img id="page3" src="./Assets/HOSBO2.jpg" />
-        <img id="page4" src="./Assets/HOSBO3.jpg" />
-        <img id="page5" src="./Assets/HOSBO4.jpg" />
-        <img id="page6" src="./Assets/HOSBO5.jpg" />
-        <img id="page7" src="./Assets/HOSBO6.jpg" />
-        <img id="page8" src="./Assets/HOSBO7.jpg" />
-        <img id="page9" src="./Assets/HOSBO8.jpg" />
-        <img id="page10" src="./Assets/HOSBO9.jpg" />
-        <img id="page11" src="./Assets/HOSBO10.jpg" />
-        <img id="page12" src="./Assets/HOSBO11.jpg" />
+      <a-assets>
+        <video
+          id="page2"
+          src="https://drive.usercontent.google.com/download?id=1zCe0XTTIeCOKzygFSbd_Wro8UWbyWz7A&export=download&authuser=0&confirm=t&uuid=09df31c9-043d-4828-a245-7ed7e90b9bb1&at=AKSUxGPI-TOLRxkxP_uwyj7ySBvX:1760669726925"
+          preload="auto"
+          crossorigin="anonymous"
+        ></video>
+        <video
+          id="page3"
+          src="https://drive.usercontent.google.com/download?id=1Vu455syyZiVA2nEpEXQtJ2yBx00IgiqW&export=download&authuser=0&confirm=t&uuid=f22ab87a-dd1d-4dbc-82b8-bbd017f9d9c0&at=AKSUxGMc7xUkiJRN8buSpzwYtrGz:1760670120253"
+          preload="auto"
+          crossorigin="anonymous"
+        ></video>
       </a-assets>
 
       <a-nft
@@ -97,124 +90,113 @@
         smoothTolerance=".01"
         smoothThreshold="5"
       >
-        <!-- Page container -->
-        <a-entity
-          id="magazinePage"
-          geometry="primitive: plane; width: 280; height: 100"
-          material="src: #page2"
+        <!-- Video 1 -->
+        <a-video
+          id="video1"
+          src="#page2"
+          width="320"
+          height="480"
           position="160 -30 -240"
           rotation="-90 0 0"
+          visible="true"
+        ></a-video>
+
+        <!-- Video 2 -->
+        <a-video
+          id="video2"
+          src="#page3"
+          width="320"
+          height="480"
+          position="300 -50 -400"
+          rotation="-90 0 0"
           visible="false"
-        >
-        </a-entity>
+        ></a-video>
       </a-nft>
 
       <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      const audio = document.querySelector("#mySound");
       const marker = document.querySelector("#nftMarker");
       const startOverlay = document.getElementById("startOverlay");
       const loadingOverlay = document.getElementById("loadingOverlay");
-      const magazinePlane = document.getElementById("magazinePage");
 
-      let userTapped = false;
-      let arReady = false;
-      let audioPrimed = false;
-      let markerEventsAttached = false;
-
-      // Page slideshow setup
-      const pages = [
-        "#page2",
-        "#page3",
-        "#page4",
-        "#page5",
-        "#page6",
-        "#page7",
-        "#page8",
-        "#page9",
-        "#page10",
-        "#page11",
-        "#page12",
+      const videos = [
+        document.querySelector("#page2"),
+        document.querySelector("#page3"),
+      ];
+      const videoEntities = [
+        document.querySelector("#video1"),
+        document.querySelector("#video2"),
       ];
       let currentPage = 0;
-      let intervalId = null;
+      let userTapped = false;
+      let arReady = false;
 
-      function showPage(index) {
-        magazinePlane.setAttribute("material", "src", pages[index]);
-        magazinePlane.setAttribute("visible", true);
-
-        // Fade in animation
-        magazinePlane.setAttribute("animation__fade", {
-          property: "material.opacity",
-          from: 0,
-          to: 1,
-          dur: 1000,
-        });
-      }
-
-      function tryInitARAudio() {
-        if (userTapped && arReady && !markerEventsAttached) {
-          startOverlay.style.display = "none";
-
-          marker.addEventListener("markerFound", () => {
-            console.log("Marker found → playing audio + slideshow");
-
-            if (audioPrimed) {
-              audio.play();
-            }
-
-            // Start slideshow
-            currentPage = 0;
-            showPage(currentPage);
-
-            intervalId = setInterval(() => {
-              currentPage = (currentPage + 1) % pages.length;
-              showPage(currentPage);
-            }, 10000); // 5s per page
-          });
-
-          marker.addEventListener("markerLost", () => {
-            console.log("Marker lost → stopping audio + slideshow");
-            audio.pause();
-            audio.currentTime = 0;
-
-            clearInterval(intervalId);
-            magazinePlane.setAttribute("visible", false);
-          });
-
-          markerEventsAttached = true; // Prevent double binding
-        }
-      }
-
+      // --- AR.js load ---
       window.addEventListener("arjs-nft-loaded", () => {
         arReady = true;
-        console.log("AR.js is ready");
         loadingOverlay.style.display = "none";
         startOverlay.style.display = "flex";
-        tryInitARAudio();
       });
 
       startOverlay.addEventListener("click", () => {
         userTapped = true;
+        startOverlay.style.display = "none";
 
-        // Silent unlock without actually playing
-        const silentUnlock = audio.play();
-        if (silentUnlock !== undefined) {
-          silentUnlock
-            .then(() => {
-              audio.pause();
-              audio.currentTime = 0;
-              audioPrimed = true;
-              console.log("Audio primed silently");
-              tryInitARAudio();
-            })
-            .catch((e) => {
-              console.warn("Error priming audio:", e);
-            });
-        }
+        // Enable video playback permission
+        videos.forEach((v) => v.play().then(() => v.pause()));
       });
+
+      // --- Marker events ---
+      marker.addEventListener("markerFound", () => {
+        if (!userTapped) return;
+        playVideo(currentPage);
+      });
+
+      marker.addEventListener("markerLost", () => {
+        videos.forEach((v) => {
+          v.pause();
+          v.currentTime = 0;
+        });
+      });
+
+      // --- Swipe logic ---
+      let startX = null;
+
+      document.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX;
+      });
+
+      document.addEventListener("touchend", (e) => {
+        if (startX === null) return;
+        let endX = e.changedTouches[0].clientX;
+        let diff = startX - endX;
+
+        if (Math.abs(diff) > 30) {
+          if (diff > 0 && currentPage < videos.length - 1) {
+            currentPage++;
+          } else if (diff < 0 && currentPage > 0) {
+            currentPage--;
+          }
+          playVideo(currentPage);
+        }
+
+        startX = null;
+      });
+
+      function playVideo(index) {
+        videos.forEach((v, i) => {
+          if (i === index) {
+            videoEntities[i].setAttribute("visible", true);
+            v.play();
+          } else {
+            videoEntities[i].setAttribute("visible", false);
+            v.pause();
+            v.currentTime = 0;
+          }
+        });
+      }
     </script>
   </body>
 </html>
